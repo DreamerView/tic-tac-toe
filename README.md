@@ -18,7 +18,7 @@ A simple and responsive Tic Tac Toe game built with **HTML**, **CSS**, **JavaScr
 ## 🚀 Live Demo
 
 ▶️ **Play Now:**  
-[https://your-username.github.io/tic-tac-toe/](https://dreamerview.github.io/tic-tac-toe/)  
+[https://dreamerview.github.io/tic-tac-toe/](https://dreamerview.github.io/tic-tac-toe/)  
 
 ---
 
