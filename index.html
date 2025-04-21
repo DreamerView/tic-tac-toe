@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      padding: 1rem;
+      text-align: center;
+    }
+    .cell {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      font-size: 8vw;
+      min-height: 80px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .winner {
+      background-color: #d1e7dd !important;
+    }
+    #board {
+      width: 100%;
+      max-width: 360px;
+      margin: auto;
+    }
+    @media (min-width: 768px) {
+      .cell {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body class="bg-light d-flex flex-column justify-content-center align-items-center min-vh-100">
+
+  <!-- Главное меню -->
+  <div id="menu" class="text-center">
+    <h1 class="mb-4">Tic Tac Toe</h1>
+    <button class="btn btn-primary mb-2 w-100" onclick="startPvP()">👥 Игрок против игрока</button><br>
+    <button class="btn btn-secondary w-100" onclick="startVsBot()">🤖 Против компьютера</button>
+  </div>
+
+  <!-- Ввод имён -->
+  <div id="nameInput" class="text-center d-none w-100" style="max-width: 400px;">
+    <h4 class="mb-3">Введите имена игроков</h4>
+    <input id="playerX" class="form-control mb-2" placeholder="Игрок X">
+    <input id="playerO" class="form-control mb-3" placeholder="Игрок O">
+    <button class="btn btn-success w-100" onclick="startGame()">Начать игру</button>
+  </div>
+
+  <!-- Игровое поле -->
+  <div id="game" class="d-none text-center w-100">
+    <h2 id="title" class="mb-4"></h2>
+    <div id="board" class="d-grid gap-2" style="grid-template-columns: repeat(3, 1fr);"></div>
+    <div id="status" class="mt-4 fs-4"></div>
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-3">
+      <button class="btn btn-success w-100" onclick="repeatGame()">🔁 Повторить</button>
+      <button class="btn btn-outline-primary w-100" onclick="resetToMenu()">🔙 В меню</button>
+    </div>
+  </div>
+
+    <footer class="text-center mt-4">
+        <p></p>Built with ❤️ by <strong>Temirkhan</strong></p>
+        <p>Project at <a target="_blank" href="https://github.com/DreamerView/tic-tac-toe">Github</a></p>
+    </footer>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const show = id => $(id).classList.remove("d-none");
+    const hide = id => $(id).classList.add("d-none");
+
+    const boardEl = $("board"), statusEl = $("status"), titleEl = $("title");
+    let cells = Array(9).fill(null), currentPlayer = "X", gameActive = true, isBot = false;
+    let playerNames = { X: "Игрок X", O: "Игрок O" };
+
+    const wins = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+
+    const startPvP = () => {
+      hide("menu");
+      show("nameInput");
+      isBot = false;
+    };
+
+    const startVsBot = () => {
+      playerNames = { X: "Вы", O: "Бот" };
+      isBot = true;
+      startGame();
+    };
+
+    const startGame = () => {
+      if (!isBot) {
+        playerNames.X = $("playerX").value.trim() || "Игрок X";
+        playerNames.O = $("playerO").value.trim() || "Игрок O";
+      }
+      cells = Array(9).fill(null);
+      currentPlayer = "X";
+      gameActive = true;
+      hide("menu");
+      hide("nameInput");
+      show("game");
+      titleEl.textContent = `${playerNames.X} vs ${playerNames.O}`;
+      statusEl.textContent = `Ходит: ${playerNames[currentPlayer]}`;
+      renderBoard();
+    };
+
+    const renderBoard = () => {
+      boardEl.innerHTML = "";
+      cells.forEach((val, i) => {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-outline-dark cell";
+        btn.textContent = val || "";
+        btn.onclick = () => move(i, btn);
+        boardEl.appendChild(btn);
+      });
+    };
+
+    const move = (i, el) => {
+      if (!gameActive || cells[i]) return;
+      cells[i] = currentPlayer;
+      el.textContent = currentPlayer;
+
+      if (checkWin()) {
+        statusEl.textContent = `🎉 Победил: ${playerNames[currentPlayer]}!`;
+        highlightWin();
+        gameActive = false;
+      } else if (!cells.includes(null)) {
+        statusEl.textContent = "Ничья!";
+        gameActive = false;
+      } else {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        statusEl.textContent = `Ходит: ${playerNames[currentPlayer]}`;
+        if (isBot && currentPlayer === "O") setTimeout(botMove, 400);
+      }
+    };
+
+    const checkWin = () => wins.some(([a,b,c]) => cells[a] && cells[a] === cells[b] && cells[a] === cells[c]);
+
+    const highlightWin = () => {
+      wins.forEach(([a,b,c]) => {
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+          [a, b, c].forEach(i => boardEl.children[i].classList.add("winner"));
+        }
+      });
+    };
+
+    const botMove = () => {
+      const empty = cells.map((v, i) => v === null ? i : null).filter(i => i !== null);
+      const move = empty[Math.floor(Math.random() * empty.length)];
+      move >= 0 && boardEl.children[move]?.click();
+    };
+
+    const repeatGame = () => {
+      cells = Array(9).fill(null);
+      currentPlayer = "X";
+      gameActive = true;
+      statusEl.textContent = `Ходит: ${playerNames[currentPlayer]}`;
+      renderBoard();
+    };
+
+    const resetToMenu = () => {
+      hide("game");
+      show("menu");
+    };
+  </script>
+</body>
+</html>
